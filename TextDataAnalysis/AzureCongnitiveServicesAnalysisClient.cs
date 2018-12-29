@@ -43,6 +43,36 @@ namespace TextDataAnalysis
             };
         }
 
+        public async Task<KeyPhraseResult> KeyPhrasesAsync(List<KeyPhraseInput> inputs)
+        {
+            var result = await _client.KeyPhrasesAsync(
+                new MultiLanguageBatchInput(inputs.Select(_ => new MultiLanguageInput(_.Language, _.Id, _.Text))
+                    .ToList()));
+            return new KeyPhraseResult
+            {
+                Documents = result.Documents.Select(_ => new KeyPhraseDocumentResult
+                {
+                    Id = _.Id,
+                    KeyPhrases = _.KeyPhrases
+                })
+            };
+        }
+
+        public async Task<SentimentResult> SentimentAsync(List<SentimentInput> inputs)
+        {
+            var result = await _client.SentimentAsync(
+                new MultiLanguageBatchInput(inputs.Select(_ => new MultiLanguageInput(_.Language, _.Id, _.Text))
+                    .ToList()));
+            return new SentimentResult
+            {
+                Documents = result.Documents.Select(_ => new SentimentDocumentResult
+                {
+                    Id = _.Id,
+                    Score = _.Score
+                })
+            };
+        }
+
         public class ApiKeyServiceClientCredentials : ServiceClientCredentials
         {
             private readonly string _subscriptionKey;//Insert your Text Anaytics subscription key

@@ -92,64 +92,102 @@ namespace SentimentTest
                 Console.WriteLine("Document ID: {0} , Language: {1}", document.Id, document.DetectedLanguages[0].Name);
             }
 
-            //// Getting key-phrases
-            //Console.WriteLine("\n\n===== KEY-PHRASE EXTRACTION ======");
+            // Getting key-phrases
+            Console.WriteLine("\n\n===== KEY-PHRASE EXTRACTION ======");
 
-            //KeyPhraseBatchResult result2 = client.KeyPhrasesAsync(new MultiLanguageBatchInput(
-            //            new List<MultiLanguageInput>()
-            //            {
-            //              new MultiLanguageInput("ja", "1", "猫は幸せ"),
-            //              new MultiLanguageInput("de", "2", "Fahrt nach Stuttgart und dann zum Hotel zu Fu."),
-            //              new MultiLanguageInput("en", "3", "My cat is stiff as a rock."),
-            //              new MultiLanguageInput("es", "4", "A mi me encanta el fútbol!")
-            //            })).Result;
+            KeyPhraseResult result2 = textAnalysisClient.KeyPhrasesAsync(new List<KeyPhraseInput>()
+                        {
+                            new KeyPhraseInput
+                            {
+                                Language = "ja",
+                                Id = "1",
+                                Text = "猫は幸せ"
+                            },
+                            new KeyPhraseInput
+                            {
+                                Language = "de",
+                                Id = "2",
+                                Text = "Fahrt nach Stuttgart und dann zum Hotel zu Fu."
+                            },
+                            new KeyPhraseInput
+                            {
+                                Language = "en",
+                                Id = "3",
+                                Text = "My cat is stiff as a rock."
+                            },
+                            new KeyPhraseInput
+                            {
+                                Language = "es",
+                                Id = "4",
+                                Text = "A mi me encanta el fútbol!"
+                            }
+                        }).Result;
 
-            //// Printing keyphrases
-            //foreach (var document in result2.Documents)
-            //{
-            //    Console.WriteLine("Document ID: {0} ", document.Id);
+            // Printing keyphrases
+            foreach (var document in result2.Documents)
+            {
+                Console.WriteLine("Document ID: {0} ", document.Id);
 
-            //    Console.WriteLine("\t Key phrases:");
+                Console.WriteLine("\t Key phrases:");
 
-            //    foreach (string keyphrase in document.KeyPhrases)
-            //    {
-            //        Console.WriteLine("\t\t" + keyphrase);
-            //    }
-            //}
+                foreach (string keyphrase in document.KeyPhrases)
+                {
+                    Console.WriteLine("\t\t" + keyphrase);
+                }
+            }
 
-            //// Extracting sentiment
-            //Console.WriteLine("\n\n===== SENTIMENT ANALYSIS ======");
+            // Extracting sentiment
+            Console.WriteLine("\n\n===== SENTIMENT ANALYSIS ======");
 
-            //SentimentBatchResult result3 = client.SentimentAsync(
-            //        new MultiLanguageBatchInput(
-            //            new List<MultiLanguageInput>()
-            //            {
-            //              new MultiLanguageInput("en", "0", "I had the best day of my life."),
-            //              new MultiLanguageInput("en", "1", "This was a waste of my time. The speaker put me to sleep."),
-            //              new MultiLanguageInput("es", "2", "No tengo dinero ni nada que dar..."),
-            //              new MultiLanguageInput("it", "3", "L'hotel veneziano era meraviglioso. È un bellissimo pezzo di architettura."),
-            //            })).Result;
+            SentimentResult result3 = textAnalysisClient.SentimentAsync(
+                    new List<SentimentInput>()
+                        {
+                            new SentimentInput
+                            {
+                                Language ="en",
+                                Id = "0",
+                                Text = "I had the best day of my life."
+                            },
+                            new SentimentInput
+                            {
+                                Language ="en",
+                                Id = "1",
+                                Text = "This was a waste of my time. The speaker put me to sleep."
+                            },
+                            new SentimentInput
+                            {
+                                Language ="es",
+                                Id = "2",
+                                Text = "No tengo dinero ni nada que dar..."
+                            },
+                            new SentimentInput
+                            {
+                                Language ="it",
+                                Id = "3",
+                                Text = "L'hotel veneziano era meraviglioso. È un bellissimo pezzo di architettura."
+                            }
+                        }).Result;
 
 
-            //// Printing sentiment results
-            //foreach (var document in result3.Documents)
-            //{
-            //    Console.WriteLine("Document ID: {0} , Sentiment Score: {1:0.00}", document.Id, document.Score);
-            //}
+            // Printing sentiment results
+            foreach (var document in result3.Documents)
+            {
+                Console.WriteLine("Document ID: {0} , Sentiment Score: {1:0.00}", document.Id, document.Score);
+            }
 
-            //var jander3 = searchDataResult.TextDataDocuments.Select(_ => new MultiLanguageInput
-            //{
-            //    Id = _.Id.ToString(),
-            //    Text = _.Text,
-            //    Language = result.Documents.First(d => d.Id == _.Id.ToString()).DetectedLanguages.First()
-            //        .Iso6391Name
-            //}).ToList();
+            var jander3 = searchDataResult.TextDataDocuments.Select(_ => new SentimentInput
+            {
+                Id = _.Id.ToString(),
+                Text = _.Text,
+                Language = result.Documents.First(d => d.Id == _.Id.ToString()).DetectedLanguages.First()
+                    .Iso6391Name
+            }).ToList();
 
-            //result3 = client.SentimentAsync(new MultiLanguageBatchInput(jander3)).Result;
-            //foreach (var document in result3.Documents)
-            //{
-            //    Console.WriteLine("Document ID: {0} , Sentiment Score: {1:0.00}", document.Id, document.Score);
-            //}
+            result3 = textAnalysisClient.SentimentAsync(jander3).Result;
+            foreach (var document in result3.Documents)
+            {
+                Console.WriteLine("Document ID: {0} , Sentiment Score: {1:0.00}", document.Id, document.Score);
+            }
 
             //// Identify entities
             //Console.WriteLine("\n\n===== ENTITIES ======");
