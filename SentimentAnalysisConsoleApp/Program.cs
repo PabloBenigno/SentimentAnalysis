@@ -27,7 +27,7 @@ namespace SentimentTest
                 .Get<CognitiveServicesConfiguration>();
 
             DataSource = new TwitterDataSource(twitterConfiguration);
-            SearchDataResult searchDataResult = DataSource.GetSearchData("#Trifachito").Result;
+            SearchDataResult searchDataResult = DataSource.GetSearchDataAsync("#Trifachito").Result;
             
 
             Console.WriteLine("\nQuery: {0}\n", searchDataResult.Query);
@@ -36,7 +36,9 @@ namespace SentimentTest
                     "ID: {0, -15}, Source: {1}\nContent: {2}\n",
                     entry.Id, entry.Source, entry.Text));
 
-            
+
+            var user = DataSource.GetUserFromScreenName("pablobenigno1");
+            var timeline = DataSource.GetTimelineByUserId(user.UserId);
 
             Console.ReadKey();
 

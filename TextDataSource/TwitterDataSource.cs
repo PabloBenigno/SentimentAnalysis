@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using LinqToTwitter;
+using Tweetinvi;
+using Tweetinvi.Models;
 
 namespace TextDataSource
 {
@@ -21,8 +23,11 @@ namespace TextDataSource
             auth.AuthorizeAsync().Wait();
 
             _context = new TwitterContext(auth);
+
+            Auth.SetUserCredentials(configuration.ConsumerKey, configuration.ConsumerSecret, configuration.AccessToken, configuration.AccessTokenSecret);
+
         }
-        public async Task<SearchDataResult> GetSearchData(string searchString)
+        public async Task<SearchDataResult> GetSearchDataAsync(string searchString)
         {
             var searchResult =
                 await (from search in _context.Search
@@ -43,9 +48,24 @@ namespace TextDataSource
             };
         }
 
-        public async Task GetBla()
+        public UserResult GetUserFromScreenName(string screenName)
         {
-            var result = await _context.User.Where(_ => _.Name == "pablobenigno1").FirstOrDefaultAsync();
+            var user = Tweetinvi.User.GetUserFromScreenName(screenName);
+            return new UserResult
+            {
+                Name = user.Name,
+                UserId = user.UserIdentifier.Id
+            };
+        }
+
+        public TimelineResult GetTimelineByUserId(long userId)
+        {
+            UserIdentifier userIdentifier = new UserIdentifier(userId);
+            var timeline = Timeline.GetUserTimeline(userIdentifier);
+            return new TimelineResult
+            {
+
+            };
         }
     }
 }

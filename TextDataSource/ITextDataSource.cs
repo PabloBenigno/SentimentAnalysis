@@ -4,6 +4,8 @@ namespace TextDataSource
 {
     public interface ITextDataSource
     {
-        Task<SearchDataResult> GetSearchData(string searchString);
+        Task<SearchDataResult> GetSearchDataAsync(string searchString);
+        UserResult GetUserFromScreenName(string screenName);
+        TimelineResult GetTimelineByUserId(long userUserId);
     }
 }
