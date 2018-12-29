@@ -42,5 +42,10 @@ namespace TextDataSource
                 }).ToList()
             };
         }
+
+        public async Task GetBla()
+        {
+            var result = await _context.User.Where(_ => _.Name == "pablobenigno1").FirstOrDefaultAsync();
+        }
     }
 }

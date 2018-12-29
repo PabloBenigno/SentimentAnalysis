@@ -43,7 +43,7 @@ namespace TextDataAnalysis
             };
         }
 
-        public async Task<KeyPhraseResult> KeyPhrasesAsync(List<KeyPhraseInput> inputs)
+        public async Task<KeyPhraseResult> KeyPhrasesAsync(List<MultipleLanguageInput> inputs)
         {
             var result = await _client.KeyPhrasesAsync(
                 new MultiLanguageBatchInput(inputs.Select(_ => new MultiLanguageInput(_.Language, _.Id, _.Text))
@@ -58,7 +58,7 @@ namespace TextDataAnalysis
             };
         }
 
-        public async Task<SentimentResult> SentimentAsync(List<SentimentInput> inputs)
+        public async Task<SentimentResult> SentimentAsync(List<MultipleLanguageInput> inputs)
         {
             var result = await _client.SentimentAsync(
                 new MultiLanguageBatchInput(inputs.Select(_ => new MultiLanguageInput(_.Language, _.Id, _.Text))
@@ -73,9 +73,27 @@ namespace TextDataAnalysis
             };
         }
 
+        public async Task<EntitiesResult> EntitiesAsync(List<MultipleLanguageInput> inputs)
+        {
+            var result = await _client.EntitiesAsync(
+                new MultiLanguageBatchInput(inputs.Select(_ => new MultiLanguageInput(_.Language, _.Id, _.Text))
+                    .ToList()));
+            return new EntitiesResult
+            {
+                Documents = result.Documents.Select(_ => new EntitiesDocumentResult
+                {
+                    Id = _.Id,
+                    Entities = _.Entities.Select(e => new EntityDocument
+                    {
+                        Name = e.Name
+                    })
+                })
+            };
+        }
+
         public class ApiKeyServiceClientCredentials : ServiceClientCredentials
         {
-            private readonly string _subscriptionKey;//Insert your Text Anaytics subscription key
+            private readonly string _subscriptionKey;
 
             public ApiKeyServiceClientCredentials(string subscriptionKey)
             {

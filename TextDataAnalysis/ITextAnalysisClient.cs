@@ -8,7 +8,8 @@ namespace TextDataAnalysis
     public interface ITextAnalysisClient
     {
         Task<DetectLanguageResult> DetectLanguageAsync(List<DetectLanguageInput> detectLanguageInputs);
-        Task<KeyPhraseResult> KeyPhrasesAsync(List<KeyPhraseInput> inputs);
-        Task<SentimentResult> SentimentAsync(List<SentimentInput> inputs);
+        Task<KeyPhraseResult> KeyPhrasesAsync(List<MultipleLanguageInput> inputs);
+        Task<SentimentResult> SentimentAsync(List<MultipleLanguageInput> inputs);
+        Task<EntitiesResult> EntitiesAsync(List<MultipleLanguageInput> inputs);
     }
 }

@@ -2,13 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Azure.CognitiveServices.Language.TextAnalytics;
-using Microsoft.Azure.CognitiveServices.Language.TextAnalytics.Models;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Rest;
 using TextDataAnalysis;
 using TextDataSource;
 
@@ -41,6 +35,8 @@ namespace SentimentTest
                 Console.WriteLine(
                     "ID: {0, -15}, Source: {1}\nContent: {2}\n",
                     entry.Id, entry.Source, entry.Text));
+
+            
 
             Console.ReadKey();
 
@@ -95,27 +91,27 @@ namespace SentimentTest
             // Getting key-phrases
             Console.WriteLine("\n\n===== KEY-PHRASE EXTRACTION ======");
 
-            KeyPhraseResult result2 = textAnalysisClient.KeyPhrasesAsync(new List<KeyPhraseInput>()
+            KeyPhraseResult result2 = textAnalysisClient.KeyPhrasesAsync(new List<MultipleLanguageInput>()
                         {
-                            new KeyPhraseInput
+                            new MultipleLanguageInput
                             {
                                 Language = "ja",
                                 Id = "1",
                                 Text = "猫は幸せ"
                             },
-                            new KeyPhraseInput
+                            new MultipleLanguageInput
                             {
                                 Language = "de",
                                 Id = "2",
                                 Text = "Fahrt nach Stuttgart und dann zum Hotel zu Fu."
                             },
-                            new KeyPhraseInput
+                            new MultipleLanguageInput
                             {
                                 Language = "en",
                                 Id = "3",
                                 Text = "My cat is stiff as a rock."
                             },
-                            new KeyPhraseInput
+                            new MultipleLanguageInput
                             {
                                 Language = "es",
                                 Id = "4",
@@ -140,27 +136,27 @@ namespace SentimentTest
             Console.WriteLine("\n\n===== SENTIMENT ANALYSIS ======");
 
             SentimentResult result3 = textAnalysisClient.SentimentAsync(
-                    new List<SentimentInput>()
+                    new List<MultipleLanguageInput>()
                         {
-                            new SentimentInput
+                            new MultipleLanguageInput
                             {
                                 Language ="en",
                                 Id = "0",
                                 Text = "I had the best day of my life."
                             },
-                            new SentimentInput
+                            new MultipleLanguageInput
                             {
                                 Language ="en",
                                 Id = "1",
                                 Text = "This was a waste of my time. The speaker put me to sleep."
                             },
-                            new SentimentInput
+                            new MultipleLanguageInput
                             {
                                 Language ="es",
                                 Id = "2",
                                 Text = "No tengo dinero ni nada que dar..."
                             },
-                            new SentimentInput
+                            new MultipleLanguageInput
                             {
                                 Language ="it",
                                 Id = "3",
@@ -175,7 +171,7 @@ namespace SentimentTest
                 Console.WriteLine("Document ID: {0} , Sentiment Score: {1:0.00}", document.Id, document.Score);
             }
 
-            var jander3 = searchDataResult.TextDataDocuments.Select(_ => new SentimentInput
+            var jander3 = searchDataResult.TextDataDocuments.Select(_ => new MultipleLanguageInput
             {
                 Id = _.Id.ToString(),
                 Text = _.Text,
@@ -190,27 +186,31 @@ namespace SentimentTest
             }
 
             //// Identify entities
-            //Console.WriteLine("\n\n===== ENTITIES ======");
+            Console.WriteLine("\n\n===== ENTITIES ======");
 
-            //var result4 = client.EntitiesAsync(
-            //        new MultiLanguageBatchInput(
-            //            new List<MultiLanguageInput>()
-            //            {
-            //              new MultiLanguageInput("en", "0", "The Great Depression began in 1929. By 1933, the GDP in America fell by 25%.")
-            //            })).Result;
+            EntitiesResult result4 = textAnalysisClient.EntitiesAsync(
+                    new List<MultipleLanguageInput>()
+                        {
+                          new MultipleLanguageInput
+                          {
+                              Language = "en",
+                              Id = "0",
+                              Text = "The Great Depression began in 1929. By 1933, the GDP in America fell by 25%."
+                          }
+                        }).Result;
 
-            //// Printing entities results
-            //foreach (var document in result4.Documents)
-            //{
-            //    Console.WriteLine("Document ID: {0} ", document.Id);
+            // Printing entities results
+            foreach (var document in result4.Documents)
+            {
+                Console.WriteLine("Document ID: {0} ", document.Id);
 
-            //    Console.WriteLine("\t Entities:");
+                Console.WriteLine("\t Entities:");
 
-            //    foreach (var entity in document.Entities)
-            //    {
-            //        Console.WriteLine("\t\t" + entity.Name);
-            //    }
-            //}
+                foreach (var entity in document.Entities)
+                {
+                    Console.WriteLine("\t\t" + entity.Name);
+                }
+            }
 
             Console.ReadLine();
         }
