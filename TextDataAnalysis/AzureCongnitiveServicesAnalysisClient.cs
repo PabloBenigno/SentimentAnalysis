@@ -60,6 +60,8 @@ namespace TextDataAnalysis
 
         public async Task<SentimentResult> SentimentAsync(List<MultipleLanguageInput> inputs)
         {
+            if (inputs.Count == 0) return new SentimentResult{Documents = new SentimentDocumentResult[]{}};
+
             var result = await _client.SentimentAsync(
                 new MultiLanguageBatchInput(inputs.Select(_ => new MultiLanguageInput(_.Language, _.Id, _.Text))
                     .ToList()));

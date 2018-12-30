@@ -1,8 +1,13 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using LinqToTwitter;
 using Tweetinvi;
 using Tweetinvi.Models;
+using Tweetinvi.Parameters;
+using Search = Tweetinvi.Search;
+using User = Tweetinvi.User;
 
 namespace TextDataSource
 {
@@ -50,7 +55,7 @@ namespace TextDataSource
 
         public UserResult GetUserFromScreenName(string screenName)
         {
-            var user = Tweetinvi.User.GetUserFromScreenName(screenName);
+            var user = User.GetUserFromScreenName(screenName);
             return new UserResult
             {
                 Name = user.Name,
@@ -58,14 +63,30 @@ namespace TextDataSource
             };
         }
 
-        public TimelineResult GetTimelineByUserId(long userId)
+        public TimelineResult GetTimelineByUserName(string userName)
         {
-            UserIdentifier userIdentifier = new UserIdentifier(userId);
+            UserIdentifier userIdentifier = new UserIdentifier(userName);
             var timeline = Timeline.GetUserTimeline(userIdentifier);
-            return new TimelineResult
+            var result = new TimelineResult{Tweets = new List<TweetResult>()};
+            
+            foreach (var tweet in timeline)
             {
+                var replies = Search.SearchRepliesTo(tweet, false);
 
-            };
+                result.Tweets.Add(new TweetResult
+                {
+                    TweetId = tweet.Id,
+                    Text = tweet.Text,
+                    Replies = replies.Select(r => new TweetResult
+                    {
+                        TweetId = r.Id,
+                        Text = r.Text
+                        //No further replies will be stored
+                    }).ToList()
+                });
+            }
+
+            return result;
         }
     }
 }

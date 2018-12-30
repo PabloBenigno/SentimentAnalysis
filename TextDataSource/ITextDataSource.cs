@@ -6,6 +6,6 @@ namespace TextDataSource
     {
         Task<SearchDataResult> GetSearchDataAsync(string searchString);
         UserResult GetUserFromScreenName(string screenName);
-        TimelineResult GetTimelineByUserId(long userUserId);
+        TimelineResult GetTimelineByUserName(string userName);
     }
 }

@@ -11,7 +11,6 @@ namespace SentimentTest
     class Program
     {
         public static IConfiguration Configuration { get; set; }
-        public static ITextDataSource DataSource { get; set; }
         public static CognitiveServicesConfiguration CognitiveServicerConfiguration { get; set; }
 
         static void Main(string[] args)
@@ -26,194 +25,54 @@ namespace SentimentTest
             CognitiveServicerConfiguration = Configuration.GetSection(nameof(CognitiveServicesConfiguration))
                 .Get<CognitiveServicesConfiguration>();
 
-            DataSource = new TwitterDataSource(twitterConfiguration);
-            SearchDataResult searchDataResult = DataSource.GetSearchDataAsync("#Trifachito").Result;
-            
+            ITextDataSource dataSource = new TwitterDataSource(twitterConfiguration);
 
-            Console.WriteLine("\nQuery: {0}\n", searchDataResult.Query);
-            searchDataResult.TextDataDocuments.ForEach(entry =>
+            var userName = Configuration.GetValue<string>("UserName");
+
+            Console.WriteLine($"Retrieving timeline from {userName}. Please wait...");
+            var timeline = dataSource.GetTimelineByUserName(userName);
+
+            Console.WriteLine("\nTimeline from: {0}\n", userName);
+            timeline.Tweets.ForEach(entry =>
                 Console.WriteLine(
-                    "ID: {0, -15}, Source: {1}\nContent: {2}\n",
-                    entry.Id, entry.Source, entry.Text));
-
-
-            var user = DataSource.GetUserFromScreenName("pablobenigno1");
-            var timeline = DataSource.GetTimelineByUserId(user.UserId);
+                    "ID: {0}, Number of replies {1} \nContent: {2}\n",
+                    entry.TweetId, entry.Replies.Count, entry.Text));
 
             Console.ReadKey();
 
             ITextAnalysisClient textAnalysisClient = new AzureCongnitiveServicesAnalysisClient(CognitiveServicerConfiguration);
-
-
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-
-            // Extracting language
-            Console.WriteLine("===== LANGUAGE EXTRACTION ======");
-            var result = textAnalysisClient.DetectLanguageAsync(new List<DetectLanguageInput>
-            {
-                new DetectLanguageInput
-                {
-                    Id = "1",
-                    Text = "This is a document written in English."
-                },
-                new DetectLanguageInput
-                {
-                    Id = "2",
-                    Text = "Este es un document escrito en Español."
-                },
-                new DetectLanguageInput
-                {
-                    Id = "3",
-                    Text = "这是一个用中文写的文件"
-                }
-            }).Result;
-
             
-            
-
-            // Printing language results.
-            foreach (var document in result.Documents)
-            {
-                Console.WriteLine("Document ID: {0} , Language: {1}", document.Id, document.DetectedLanguages[0].Name);
-            }
-
-            var jander = searchDataResult.TextDataDocuments.Select(_ => new DetectLanguageInput
-            {
-                Id = _.Id,
-                Text = _.Text
-            }).ToList();
-
-            result = textAnalysisClient.DetectLanguageAsync(jander).Result;
-
-            foreach (var document in result.Documents)
-            {
-                Console.WriteLine("Document ID: {0} , Language: {1}", document.Id, document.DetectedLanguages[0].Name);
-            }
-
-            // Getting key-phrases
-            Console.WriteLine("\n\n===== KEY-PHRASE EXTRACTION ======");
-
-            KeyPhraseResult result2 = textAnalysisClient.KeyPhrasesAsync(new List<MultipleLanguageInput>()
-                        {
-                            new MultipleLanguageInput
-                            {
-                                Language = "ja",
-                                Id = "1",
-                                Text = "猫は幸せ"
-                            },
-                            new MultipleLanguageInput
-                            {
-                                Language = "de",
-                                Id = "2",
-                                Text = "Fahrt nach Stuttgart und dann zum Hotel zu Fu."
-                            },
-                            new MultipleLanguageInput
-                            {
-                                Language = "en",
-                                Id = "3",
-                                Text = "My cat is stiff as a rock."
-                            },
-                            new MultipleLanguageInput
-                            {
-                                Language = "es",
-                                Id = "4",
-                                Text = "A mi me encanta el fútbol!"
-                            }
-                        }).Result;
-
-            // Printing keyphrases
-            foreach (var document in result2.Documents)
-            {
-                Console.WriteLine("Document ID: {0} ", document.Id);
-
-                Console.WriteLine("\t Key phrases:");
-
-                foreach (string keyphrase in document.KeyPhrases)
-                {
-                    Console.WriteLine("\t\t" + keyphrase);
-                }
-            }
-
             // Extracting sentiment
             Console.WriteLine("\n\n===== SENTIMENT ANALYSIS ======");
 
-            SentimentResult result3 = textAnalysisClient.SentimentAsync(
-                    new List<MultipleLanguageInput>()
-                        {
-                            new MultipleLanguageInput
-                            {
-                                Language ="en",
-                                Id = "0",
-                                Text = "I had the best day of my life."
-                            },
-                            new MultipleLanguageInput
-                            {
-                                Language ="en",
-                                Id = "1",
-                                Text = "This was a waste of my time. The speaker put me to sleep."
-                            },
-                            new MultipleLanguageInput
-                            {
-                                Language ="es",
-                                Id = "2",
-                                Text = "No tengo dinero ni nada que dar..."
-                            },
-                            new MultipleLanguageInput
-                            {
-                                Language ="it",
-                                Id = "3",
-                                Text = "L'hotel veneziano era meraviglioso. È un bellissimo pezzo di architettura."
-                            }
-                        }).Result;
-
-
-            // Printing sentiment results
-            foreach (var document in result3.Documents)
+            foreach (var tweet in timeline.Tweets.Where(_ => _.Replies.Any()))
             {
-                Console.WriteLine("Document ID: {0} , Sentiment Score: {1:0.00}", document.Id, document.Score);
-            }
-
-            var jander3 = searchDataResult.TextDataDocuments.Select(_ => new MultipleLanguageInput
-            {
-                Id = _.Id.ToString(),
-                Text = _.Text,
-                Language = result.Documents.First(d => d.Id == _.Id.ToString()).DetectedLanguages.First()
-                    .Iso6391Name
-            }).ToList();
-
-            result3 = textAnalysisClient.SentimentAsync(jander3).Result;
-            foreach (var document in result3.Documents)
-            {
-                Console.WriteLine("Document ID: {0} , Sentiment Score: {1:0.00}", document.Id, document.Score);
-            }
-
-            //// Identify entities
-            Console.WriteLine("\n\n===== ENTITIES ======");
-
-            EntitiesResult result4 = textAnalysisClient.EntitiesAsync(
-                    new List<MultipleLanguageInput>()
-                        {
-                          new MultipleLanguageInput
-                          {
-                              Language = "en",
-                              Id = "0",
-                              Text = "The Great Depression began in 1929. By 1933, the GDP in America fell by 25%."
-                          }
-                        }).Result;
-
-            // Printing entities results
-            foreach (var document in result4.Documents)
-            {
-                Console.WriteLine("Document ID: {0} ", document.Id);
-
-                Console.WriteLine("\t Entities:");
-
-                foreach (var entity in document.Entities)
+                var sentimentInputs = tweet.Replies.Select(_ => new MultipleLanguageInput
                 {
-                    Console.WriteLine("\t\t" + entity.Name);
+                    Id = _.TweetId.ToString(),
+                    Text = _.Text,
+                    Language = "es" // can be retrieved using the language detection
+                }).ToList();
+
+                var calculatedSentiments = textAnalysisClient.SentimentAsync(sentimentInputs).Result;
+
+                var averageSentiment = calculatedSentiments.Documents.Average(_ => _.Score);
+
+
+                Console.WriteLine($"Analysis of tweet with ID {tweet.TweetId} with text: \n {tweet.Text} \n The average sentiment of the replies is {averageSentiment}");
+                foreach (var document in calculatedSentiments.Documents)
+                {
+                    var reply = tweet.Replies.Single(_ => _.TweetId.ToString() == document.Id);
+                    Console.WriteLine($"Document ID: {document.Id} , Sentiment Score: {document.Score} \n {reply.Text}");
                 }
+
+                Console.WriteLine("Press a key to continue...");
+                Console.ReadKey();
             }
 
+            
+            Console.WriteLine("End. Press ENTER to close.");
             Console.ReadLine();
         }
 
